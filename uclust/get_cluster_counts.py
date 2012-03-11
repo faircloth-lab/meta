@@ -20,15 +20,32 @@ from subprocess import Popen, PIPE
 
 import pdb
 
+
 def get_args():
-    parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
-    parser.add_argument('input', help = """The input directory containing fastas
-            to cluster""", action = FullPaths, type = is_dir)
-    parser.add_argument('--output', help = """The output directory to hold results""",
-            default = os.getcwd(), action = FullPaths, type = is_dir)
-    parser.add_argument('--id', help = """The % identity to use""", 
-            default = 0.9)
+    parser = argparse.ArgumentParser(
+            description="""Match UCE probes to assembled
+            contigs and store the data""")
+    parser.add_argument(
+            'input',
+            action=FullPaths,
+            type=is_dir,
+            help="""The input directory containing fastas
+            to cluster"""
+        )
+    parser.add_argument(
+            '--output',
+            default=os.getcwd(),
+            action=FullPaths,
+            type=is_dir,
+            help="""The output directory to hold results""",
+        )
+    parser.add_argument(
+            '--id',
+            help="""The % identity to use""",
+            default=0.9
+        )
     return parser.parse_args()
+
 
 def main():
     args = get_args()
