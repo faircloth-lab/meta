@@ -5,7 +5,8 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 15 December 2011 14:12 PST (-0800)
 Copyright (c) 2011 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description: Given a directory of UCLUST matches, count reads
+clustering together.
 
 """
 
@@ -15,14 +16,25 @@ import argparse
 from collections import defaultdict
 from seqtools.fs.args import FullPaths, is_dir
 
-import pdb
+#import pdb
+
 
 def get_args():
-    parser = argparse.ArgumentParser(description="Get counts of reads in UCLUST clusters")
-    parser.add_argument('input', help = """The input directory containing fastas
-            to cluster""", action = FullPaths, type = is_dir)
-    parser.add_argument('--sorted', help = """Sort by counts rather than clusters""", 
-        action = "store_true")
+    parser = argparse.ArgumentParser(
+            description="""Get counts of reads in a directory of
+            UCLUST clusters"""
+        )
+    parser.add_argument(
+            'input',
+            type=is_dir,
+            action=FullPaths,
+            help="""The input directory containing fastas to cluster""",
+        )
+    parser.add_argument(
+            '--sorted',
+            action="store_true",
+            help="""Sort by counts rather than clusters"""
+        )
     return parser.parse_args()
 
 
@@ -46,13 +58,12 @@ def main():
         for slot in sorted(all_counts[file].keys()):
             spacer[slot] = len(all_counts[file][slot])
         if args.sorted:
-            spacer = [str(s) for s in sorted(spacer, reverse = True)]
+            spacer = [str(s) for s in sorted(spacer, reverse=True)]
         else:
             spacer = [str(s) for s in spacer]
         # replace None with "" to => pretty
-        print "{0},{1}".format(file,','.join(spacer).replace("None", ""))
-            
+        print "{0},{1}".format(file, ','.join(spacer).replace("None", ""))
+
 
 if __name__ == '__main__':
     main()
-    
