@@ -1,5 +1,5 @@
 """
-File: get_cluster_counts.py
+File: get_clusters.py
 Author: Brant Faircloth
 
 Created by Brant Faircloth on 14 December 2011 21:12 PST (-0800)
