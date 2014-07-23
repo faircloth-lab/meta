@@ -2,16 +2,56 @@ import os
 import sys
 import glob
 import math
+import shutil
 import tempfile
 import argparse
 import ConfigParser
 from collections import defaultdict, Counter
-from seqtools.align.blat import Blat
-from seqtools.align.psl import PslReader
-from seqtools.fs.args import FullPaths, is_dir
-from subprocess import Popen, PIPE
+
+from blat import Blat
+from psl import PslReader
 
 import pdb
+
+
+class FullPaths(argparse.Action):
+    """Expand user- and relative-paths"""
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, os.path.abspath(os.path.expanduser(values)))
+
+
+class CreateDir(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        # get the full path
+        d = os.path.abspath(os.path.expanduser(values))
+        # check to see if directory exists
+        if os.path.exists(d):
+            answer = raw_input("[WARNING] Output directory exists, REMOVE [Y/n]? ")
+            if answer == "Y":
+                shutil.rmtree(d)
+            else:
+                print "[QUIT]"
+                sys.exit()
+        # create the new directory
+        os.makedirs(d)
+        # return the full path
+        setattr(namespace, self.dest, d)
+
+
+def is_dir(dirname):
+    if not os.path.isdir(dirname):
+        msg = "{0} is not a directory".format(dirname)
+        raise argparse.ArgumentTypeError(msg)
+    else:
+        return dirname
+
+
+def is_file(filename):
+    if not os.path.isfile:
+        msg = "{0} is not a file".format(filename)
+        raise argparse.ArgumentTypeError(msg)
+    else:
+        return filename
 
 class Core:
     def __init__(self, name):
@@ -21,6 +61,7 @@ class Core:
     def add_read(self, psl):
         identifier = psl.q_name
         self.read[identifier][psl.match].append(psl)
+
 
 def get_args():
     parser = argparse.ArgumentParser(description="""Match UCE probes to assembled contigs and store the data""")
@@ -40,6 +81,7 @@ def get_args():
         dict""")
 
     return parser.parse_args()
+
 
 def main():
     args = get_args()
@@ -77,7 +119,7 @@ def main():
             if args.scale:
                 mx = mx - math.floor(0.1 * mx)
             #pdb.set_trace()
-            [candidates.extend(core.read[id][score]) 
+            [candidates.extend(core.read[id][score])
                     for score in core.read[id].keys() \
                     if score >= mx
                 ]
@@ -90,8 +132,8 @@ def main():
         else:
             # merge dicts
             td = dict(expected_dict.items() + dict(species_counts).items())
-            outlist = ["{0}".format(td[k]) 
-                    if td[k] is not None else '' 
+            outlist = ["{0}".format(td[k])
+                    if td[k] is not None else ''
                     for v,k in expected_order
                     ]
             print "{0},{1}".format(core.name, ','.join(outlist))
