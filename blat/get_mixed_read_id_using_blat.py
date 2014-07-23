@@ -7,6 +7,7 @@ import tempfile
 import argparse
 import ConfigParser
 from collections import defaultdict, Counter
+from Bio import SeqIO
 
 from blat import Blat
 from psl import PslReader
@@ -65,22 +66,62 @@ class Core:
 
 def get_args():
     parser = argparse.ArgumentParser(description="""Match UCE probes to assembled contigs and store the data""")
-    parser.add_argument("db", help = """The input database to match against""",
-        action = FullPaths)
-    parser.add_argument("query", help = """The input file containing the
-        fasta read""", action = FullPaths, type = is_dir)
-    parser.add_argument("--filter-length", dest = "length", help = """The shortest reads to
-            accept""", type = int, default = 50)
-    parser.add_argument("--raw", help = """Output the raw psl""",
-            action = "store_true")
-    parser.add_argument("--scale", help = """Output the raw psl""",
-            action = "store_true")
-    parser.add_argument("--conf", help = """Input desired order and output as
-        csv""")
-    parser.add_argument("--section", help = """Section of --conf to use as
-        dict""")
-
+    parser.add_argument(
+        "--db",
+        required=True,
+        help = """The input database to match against""",
+        action = is_file
+    )
+    parser.add_argument(
+        "--query",
+        required=True,
+        action = FullPaths,
+        type = is_dir,
+        help = """The input directory containing the fasta read"""
+    )
+    parser.add_argument(
+        "--filter-length",
+        dest = "length",
+        help = """The shortest reads to accept""",
+        type = int,
+        default = 50
+    )
+    parser.add_argument(
+        "--filter-qual",
+        dest = "qual",
+        help = """The shortest quality to accept""",
+        type = int,
+        default = 5
+    )
+    parser.add_argument(
+        "--raw",
+        help = """Output the raw psl""",
+        action = "store_true"
+    )
+    parser.add_argument(
+        "--scale",
+        help = """Output the raw psl""",
+        action = "store_true"
+    )
+    parser.add_argument(
+        "--conf",
+        help = """Input desired order and output as csv"""
+    )
+    parser.add_argument(
+        "--section",
+        help = """Section of --conf to use as dict"""
+    )
     return parser.parse_args()
+
+
+def length_and_quality_filter(fasta):
+    # get qual file name
+    qual = os.path.splitext(fasta)[0] + ".qual"
+    assert(is_file(qual)), "There does not appear to be an associated Quality file"
+    with open(fasta, "rU") as f:
+        with open(qual, "rU") as q:
+            for record in SeqIO.PairedFastaQualIterator(f, q):
+                pdb.set_trace()
 
 
 def main():
@@ -94,6 +135,8 @@ def main():
     for file in glob.glob(os.path.join(args.query, '*.fasta')):
         # get core name
         core = Core(os.path.basename(file))
+        # filter core for length
+        fasta = length_and_quality_filter(file)
         # just store raw psl in tempfile
         fd, temp_psl = tempfile.mkstemp(suffix='.blat')
         os.close(fd) #kludge
